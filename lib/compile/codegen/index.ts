@@ -1,5 +1,5 @@
 import type {ScopeValueSets, NameValue, ValueScope, ValueScopeName} from "./scope"
-import {_, nil, _Code, Code, Name, UsedNames, usedNames, updateUsedNames} from "./code"
+import {_, nil, _CodeOrName, _Code, Code, Name, UsedNames, usedNames, updateUsedNames} from "./code"
 import {Scope} from "./scope"
 
 export {_, str, strConcat, nil, getProperty, stringify, Name, Code} from "./code"
@@ -170,7 +170,7 @@ export class CodeGen {
   private readonly opts: CodeGenOptions
   private readonly _n: string
   private _out = ""
-  // nodeCount = 0
+  nodeCount = 0
 
   constructor(extScope: ValueScope, opts: CodeGenOptions = {}) {
     this.opts = opts
@@ -260,7 +260,7 @@ export class CodeGen {
       .map(([key, value]) => {
         updateUsedNames(key, names)
         if (key === value) return this.opts.es5 ? `${key}:${value}` : key
-        if (value instanceof _Code) updateUsedNames(value, names)
+        if (value instanceof _CodeOrName) updateUsedNames(value, names)
         return `${key}:${value}`
       })
       .reduce((c1, c2) => `${c1},${c2}`)
@@ -473,7 +473,7 @@ export class CodeGen {
   }
 
   private _nodeCode(node: ParentNode): void {
-    // this.nodeCount++
+    this.nodeCount++
     switch (node.kind) {
       case Node.If:
         this._out += `if(${node.condition})`
@@ -519,7 +519,7 @@ export class CodeGen {
   }
 
   private _leafNodeCode(node: LeafNode): void {
-    // this.nodeCount++
+    this.nodeCount++
     let code: string
     switch (node.kind) {
       case Node.Def: {
@@ -656,8 +656,8 @@ function removeUnusedNames(nodes: ChildNode[], names: UsedNames): void {
 
 function unusedName(n: ChildNode, names: UsedNames): boolean {
   return (
-    (n.kind === Node.Def && !names[n.name._str]) ||
-    (n.kind === Node.Assign && n.lhs instanceof Name && !names[n.lhs._str])
+    (n.kind === Node.Def && !names[n.name.str]) ||
+    (n.kind === Node.Assign && n.lhs instanceof Name && !names[n.lhs.str])
   )
 }
 

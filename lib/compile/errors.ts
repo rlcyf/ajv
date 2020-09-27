@@ -115,8 +115,8 @@ function errorObjectCode(cxt: KeywordErrorCxt, error: KeywordErrorDefinition): C
   const {params, message} = error
   const keyValues: [Name, SafeExpr][] = [
     [E.keyword, _`${keyword}`],
-    [N.dataPath, strConcat(N.dataPath, errorPath)],
-    [E.schemaPath, str`${errSchemaPath}/${keyword}`],
+    [N.dataPath, strConcat(N.dataPath, errorPath).optimize()],
+    [E.schemaPath, str`${errSchemaPath}/${keyword}`.optimize()],
     [E.params, params ? params(cxt) : _`{}`],
   ]
   if (propertyName) keyValues.push([E.propertyName, propertyName])
